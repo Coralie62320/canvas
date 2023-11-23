@@ -3,6 +3,9 @@ let canvas = document.querySelector("#canvas");
 canvas.height = canvas.offsetHeight;
 canvas.width = canvas.offsetWidth;
 
+// Score
+let score = 0;
+
 // optimisation dimensions briques
 // Préparation variables
 // Briques
@@ -38,7 +41,7 @@ let bricks = [];
 for (let c = 0; c < brickColumnCount; c++) {  // c => column
     bricks[c] = [];
     for (let r = 0; r < brickRowCount; r++) {  // r => row
-        bricks[c][r] = {x:0, y:0}; 
+        bricks[c][r] = {x: 0, y: 0, status: 1}; 
     };  
 };
 
@@ -48,6 +51,17 @@ let ctx = canvas.getContext("2d");
 // Ecoute d'évênements sur les touches left et right
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
+
+// Ecoute mouvements souris
+document.addEventListener("mousemove", mouseMoveHandler, false);
+
+// Fonction mouvement souris
+function mouseMoveHandler (e) {
+    let relativeX = e.clientX - canvas.offsetLeft;
+    if (relativeX > 0 && relativeX < canvas.width) {
+        paddleX = relativeX - paddleWidth / 2;
+    };
+};
 
 // fonction appuis touche
 function keyDownHandler(e) {
@@ -67,28 +81,59 @@ function keyUpHandler(e) {
     }
 };
 
+
+function collisionDetection() {
+    for (let c = 0; c < brickColumnCount; c++) {  
+        for (let r = 0; r < brickRowCount; r++) {  
+            let b = bricks[c][r]; 
+            if (b.status === 1) {
+                if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
+                    dy = -dy;
+                    b.status = 0;
+                    score++;
+                    if (score === brickColumnCount * brickRowCount) {
+                        alert("Bravo, c'est gagné !");
+                        document.location.reload();
+                        clearInterval(interval);
+                    };
+                };
+            };
+        };  
+    };
+};
+
+
+function drawScore () {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Score: " + score, 8, 20);
+}
+
+
 //fonction dessin briques
 function drawBrick () {
     // Parcours tableau multi-dimensionnel
     for (let c = 0; c < brickColumnCount; c++) {
         for (let r = 0; r < brickRowCount; r++) { 
-            // Calcul position pour chaque brique
-            let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
-            let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
-            // Stockage position pour traitement collision futures
-            bricks[c][r].x = brickX;
-            bricks[c][r].y = brickY;
-            // Dessin briques à chaque itération (x15 pour nous)
-            ctx.beginPath();
-            ctx.rect(brickX, brickY, brickWidth, brickHeight);
-            ctx.fillStyle = "#0095DD";
-            ctx.fill();
-            ctx.closePath();
+            if (bricks[c][r].status === 1) {
+                // Calcul position pour chaque brique
+                let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+                let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+                // Stockage position pour traitement collision futures
+                bricks[c][r].x = brickX;
+                bricks[c][r].y = brickY;
+                // Dessin briques à chaque itération (x15 pour nous)
+                ctx.beginPath();
+                ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                ctx.fillStyle = "#0095DD";
+                ctx.fill();
+                ctx.closePath();
+            };
         };  
     };
 };
 
-// Fonction dessin padle
+// Fonction dessin paddle
 function drawPaddle() {
     ctx.beginPath();
     ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
@@ -113,6 +158,8 @@ function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
        drawBall(); // callback 
        drawPaddle();
+       drawScore();
+       collisionDetection();
        drawBrick();
 
        // rebond haut et rebond bas
@@ -122,7 +169,7 @@ function draw() {
             if (x > paddleX && x < paddleX + paddleWidth) {
                 dy = -dy;
             } else {
-                    // à optimiser !!
+                // à optimiser !!
                 alert("GAME OVER !");
                 document.location.reload();
                 clearInterval(interval); // chrome
@@ -153,4 +200,4 @@ function draw() {
     }
 };
 
-let interval = setInterval(draw, 60);
+let interval = setInterval(draw, 20);
