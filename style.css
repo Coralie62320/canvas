@@ -4,8 +4,10 @@
 }
 
 #canvas {
+  /* si non initialise en html */
   height: 320px;
   width: 480px;
+  /* Fin si non initialise en html */
   background: #eee;
   display: block;
   margin: 0 auto;
