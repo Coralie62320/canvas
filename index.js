@@ -6,6 +6,9 @@ canvas.width = canvas.offsetWidth;
 // Score
 let score = 0;
 
+// Nombres de vies
+let lives = 3;
+
 // optimisation dimensions briques
 // Préparation variables
 // Briques
@@ -78,7 +81,7 @@ function keyUpHandler(e) {
         rightPressed = false;
     } else if (e.key === "ArrowLeft" || e.key === "Left") {
         leftPressed = false;
-    }
+    };
 };
 
 
@@ -94,7 +97,7 @@ function collisionDetection() {
                     if (score === brickColumnCount * brickRowCount) {
                         alert("Bravo, c'est gagné !");
                         document.location.reload();
-                        clearInterval(interval);
+                        // clearInterval(interval);
                     };
                 };
             };
@@ -103,11 +106,20 @@ function collisionDetection() {
 };
 
 
+// Dessin texte du score (nombre briques cassées)
 function drawScore () {
     ctx.font = "16px Arial";
     ctx.fillStyle = "#0095DD";
     ctx.fillText("Score: " + score, 8, 20);
-}
+};
+
+
+// Dessin texte du nombre de vies restantes
+function drawLives() {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Lives :" + lives, canvas.width - 65, 20);
+};
 
 
 //fonction dessin briques
@@ -159,6 +171,7 @@ function draw() {
        drawBall(); // callback 
        drawPaddle();
        drawScore();
+       drawLives();
        collisionDetection();
        drawBrick();
 
@@ -167,20 +180,33 @@ function draw() {
         dy = -dy;
        } else if (y + dy > canvas.height - ballRadius) {
             if (x > paddleX && x < paddleX + paddleWidth) {
-                dy = -dy;
+                dy = -dy; // inversion direction balle
             } else {
-                // à optimiser !!
-                alert("GAME OVER !");
-                document.location.reload();
-                clearInterval(interval); // chrome
-            }
-        }
+                lives--;
+                if (lives === 0) {   // !lives => lives === 0   // si nombre de vies = à zéro
+                    // fin de partie à optimiser !!
+                    alert("GAME OVER !");
+                    document.location.reload();
+                    // clearInterval(interval); // chrome
+                } else {
+                    // Réinitialisation des positions canvas
+                    x = canvas.width / 2;
+                    y = canvas.height - 30;
+                    // direction balle
+                    dx = 2;
+                    dy = -2;
+                    // Re-positionnement du paddle
+                    paddleX = (canvas.width - paddleWidth) / 2;
+                };
+                
+            };
+        };
         
 
        // rebond gauche et droit
        if (x + dx < ballRadius || x + dx > canvas.width - ballRadius) {
         dx = -dx;
-       }
+       };
 
        if (rightPressed) {
         paddleX += 7;
@@ -191,13 +217,16 @@ function draw() {
         paddleX -= 7;
             if (paddleX < 0) {
                 paddleX = 0;
-            }
-       }
+            };
+       };
 
         x += dx; // x = x + dx;
         y += dy;
         // console.log(x);
-    }
+    };
+    requestAnimationFrame(draw); // 60fps
 };
 
-let interval = setInterval(draw, 20);
+// let interval = setInterval(draw, 20);
+
+draw();
